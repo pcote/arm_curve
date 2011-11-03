@@ -39,6 +39,7 @@ def make_arm_curve(arm_ob):
     return crv_ob
 
 def bind_curve_to_arm(arm_ob, crv_ob):
+    pass
     
 
 class CurveArmatureOp(bpy.types.Operator):
@@ -48,6 +49,11 @@ class CurveArmatureOp(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        ob = context.active_object
+        if ob == None:
+            return False
+        if ob.type != 'ARMATURE':
+            return False 
         return True
 
 
@@ -59,13 +65,25 @@ class CurveArmatureOp(bpy.types.Operator):
         scn.objects.link(crv_ob)
         return {'FINISHED'}
 
+class CurveArmaturePanel(bpy.types.Panel):
+    bl_label = "Curve Armature"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_context = "objectmode"
+    
+    def draw(self, context):
+        scn = context.scene
+        layout = self.layout
+        layout.column().operator("curve.armature_curve")
 
 def register():
     bpy.utils.register_class(CurveArmatureOp)
+    bpy.utils.register_class(CurveArmaturePanel)
 
 
 def unregister():
     bpy.utils.unregister_class(CurveArmatureOp)
+    bpy.utils.unregister_class(CurveArmaturePanel)
 
 
 if __name__ == "__main__":
