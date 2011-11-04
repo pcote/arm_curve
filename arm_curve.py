@@ -39,7 +39,8 @@ def make_arm_curve(arm_ob):
     return crv_ob
 
 def bind_curve_to_arm(arm_ob, crv_ob):
-    pass
+    crv_ob.parent = arm_ob
+    crv_ob.parent_type="ARMATURE"
     
 
 class CurveArmatureOp(bpy.types.Operator):
@@ -61,8 +62,8 @@ class CurveArmatureOp(bpy.types.Operator):
         scn = bpy.context.scene
         arm_ob = bpy.context.active_object
         crv_ob = make_arm_curve(arm_ob)
-        bind_curve_to_arm(arm_ob, crv_ob)
         scn.objects.link(crv_ob)
+        bind_curve_to_arm(arm_ob, crv_ob)
         return {'FINISHED'}
 
 class CurveArmaturePanel(bpy.types.Panel):
