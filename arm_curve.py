@@ -35,7 +35,7 @@ import bpy
 from pdb import set_trace
 
 def add_spline(bone_chain, crv):
-    # gather the data into an appropriate list.
+    
     bone_data = []
     for bone in bone_chain:
         loc = bone.head_local
@@ -49,9 +49,11 @@ def add_spline(bone_chain, crv):
     num_points = len(bone_chain)
     spline.bezier_points.add(num_points)
     spline.bezier_points.foreach_set("co", bone_data)
+    
     for point in spline.bezier_points:
         point.handle_left_type = "AUTO"
         point.handle_right_type = "AUTO"
+
 
 def get_bone_chain(arm):
     bone_chain = []
@@ -61,6 +63,7 @@ def get_bone_chain(arm):
         if len( bone.children ) != 1:
             yield bone_chain
             bone_chain = []
+            
 
 def make_arm_curve(arm_ob):
     crv = bpy.data.curves.new("crv", type="CURVE")
@@ -70,14 +73,10 @@ def make_arm_curve(arm_ob):
         add_spline(bone_chain, crv)
     
     return crv_ob
-
-def bind_curve_to_arm(arm_ob, crv_ob):
-    crv_ob.parent = arm_ob
-    crv_ob.parent_type="ARMATURE"
     
 
 class CurveArmatureOp(bpy.types.Operator):
-    '''Tooltip'''
+    '''Make a curve that binds itself to the selected armature.'''
     bl_idname = "curve.armature_curve"
     bl_label = "Curve Armature"
 
@@ -96,7 +95,8 @@ class CurveArmatureOp(bpy.types.Operator):
         arm_ob = bpy.context.active_object
         crv_ob = make_arm_curve(arm_ob)
         scn.objects.link(crv_ob)
-        bind_curve_to_arm(arm_ob, crv_ob)
+        crv_ob.parent = arm_ob
+        crv_ob.parent_type="ARMATURE"
         return {'FINISHED'}
 
 class CurveArmaturePanel(bpy.types.Panel):
