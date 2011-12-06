@@ -40,20 +40,32 @@ def add_spline(bone_chain, crv):
     for bone in bone_chain:
         loc = bone.head_local
         bone_data.extend((loc.x, loc.y, loc.z))
+        if bpy.context.scene.curve_type == 'POLY':
+            bone_data.extend( (0,) )
 
     loc = bone_chain[-1].tail_local
     bone_data.extend((loc.x, loc.y, loc.z))
+    if bpy.context.scene.curve_type == 'POLY':
+        bone_data.extend( (0,) )
 
     # construct the spline itself.
-    spline = crv.splines.new(type="BEZIER")
+    crv_type = bpy.context.scene.curve_type
+    spline = crv.splines.new(type=crv_type)
     num_points = len(bone_chain)
-    spline.bezier_points.add(num_points)
-    spline.bezier_points.foreach_set("co", bone_data)
     
-    for point in spline.bezier_points:
-        point.handle_left_type = "AUTO"
-        point.handle_right_type = "AUTO"
-
+    if crv_type == 'BEZIER':
+        points = spline.bezier_points
+    else:
+        points = spline.points
+    
+    points.add(num_points)
+    points.foreach_set("co", bone_data)
+    
+    for point in points:
+        if hasattr( point, "handle_left_type"):
+            point.handle_left_type = "AUTO"
+            point.handle_right_type = "AUTO"
+            
 
 def get_bone_chain(arm):
     bone_chain = []
@@ -99,6 +111,7 @@ class CurveArmatureOp(bpy.types.Operator):
         crv_ob.parent_type="ARMATURE"
         return {'FINISHED'}
 
+
 class CurveArmaturePanel(bpy.types.Panel):
     bl_label = "Curve Armature"
     bl_space_type = "VIEW_3D"
@@ -108,9 +121,17 @@ class CurveArmaturePanel(bpy.types.Panel):
     def draw(self, context):
         scn = context.scene
         layout = self.layout
-        layout.column().operator("curve.armature_curve")
+        col = layout.column
+        col().operator("curve.armature_curve")
+        col().prop(scn, "curve_type")
+
 
 def register():
+    scntype = bpy.types.Scene
+    enumprop=bpy.props.EnumProperty
+    choices=[ ('BEZIER', 'BEZIER', 'BEZIER'), ('POLY', 'POLY', 'POLY'), ]
+    
+    scntype.curve_type=enumprop("curve type", items=choices)
     bpy.utils.register_class(CurveArmatureOp)
     bpy.utils.register_class(CurveArmaturePanel)
 
